@@ -129,7 +129,7 @@ export function KanbanBoard({ leads: initialLeads }: { leads: Lead[] }) {
                                                                 <div className="flex justify-between items-start">
                                                                     <div className="flex-1">
                                                                         <div className="flex items-center gap-2 mb-1">
-                                                                            <Badge name="source" variant="secondary" className="text-[9px] h-4 px-1 bg-slate-800 text-slate-400 capitalize">
+                                                                            <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-slate-800 text-slate-400 capitalize">
                                                                                 {lead.source || 'direto'}
                                                                             </Badge>
                                                                         </div>
