@@ -16,23 +16,38 @@ const formSchema = z.object({
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     company: z.string().optional(),
     phone: z.string().optional(),
-    estimatedValue: z.coerce.number().optional(),
+    estimatedValue: z.string().optional(),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export function NewLeadDialog() {
     const [open, setOpen] = useState(false);
     const router = useRouter();
 
-    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<z.infer<typeof formSchema>>({
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: '',
+            email: '',
+            company: '',
+            phone: '',
+            estimatedValue: ''
+        }
     });
 
-    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const onSubmit = async (data: FormValues) => {
         try {
-            await createLead(data);
+            // Converte o valor de texto para número antes de enviar para a Server Action
+            const payload = {
+                ...data,
+                estimatedValue: data.estimatedValue ? Number(data.estimatedValue) : 0
+            };
+
+            await createLead(payload);
             setOpen(false);
             reset();
-            router.refresh(); // Ensure the page updates
+            router.refresh();
         } catch (error) {
             console.error(error);
             alert('Erro ao criar lead');
@@ -75,7 +90,7 @@ export function NewLeadDialog() {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Valor Estimado (R$)</label>
-                        <Input {...register('estimatedValue')} type="number" placeholder="0.00" />
+                        <Input {...register('estimatedValue')} type="number" step="0.01" placeholder="0.00" />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4">
