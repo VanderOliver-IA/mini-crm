@@ -86,7 +86,7 @@ export default async function DashboardPage() {
                                 <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${v / 1000}k`} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                    formatter={(v: number) => formatCurrency(v)}
+                                    formatter={(v: any) => formatCurrency(Number(v) || 0)}
                                 />
                                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                     {stats.byStatus.map((entry, index) => (
