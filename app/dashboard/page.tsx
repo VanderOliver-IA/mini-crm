@@ -1,11 +1,9 @@
 import { getDashboardStats } from "@/lib/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { DollarSign, Users, Target, Calendar, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const COLORS = ['#3b82f6', '#eab308', '#a855f7', '#f97316', '#22c55e'];
+import { ValueByStatusChart, LeadSourceChart } from "@/components/dashboard/charts";
 
 export default async function DashboardPage() {
     const stats = await getDashboardStats();
@@ -74,66 +72,8 @@ export default async function DashboardPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                {/* Value by Status Chart */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Valor por Etapa</CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats.byStatus}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
-                                <XAxis dataKey="status" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${v / 1000}k`} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                    formatter={(v: any) => formatCurrency(Number(v) || 0)}
-                                />
-                                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                    {stats.byStatus.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                {/* Lead Source Chart */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Origem dos Leads</CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={stats.bySource}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="count"
-                                    nameKey="source"
-                                >
-                                    {stats.bySource.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="flex flex-wrap justify-center gap-4 mt-2">
-                            {stats.bySource.map((s, i) => (
-                                <div key={s.source} className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                                    <span className="text-xs font-medium uppercase">{s.source} ({s.count})</span>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                <ValueByStatusChart data={stats.byStatus} />
+                <LeadSourceChart data={stats.bySource} />
             </div>
 
             {/* Today's Tasks */}
