@@ -94,42 +94,60 @@ export async function logActivity(leadId: string, type: string, content: string)
 export async function getDashboardStats() {
   const userId = await ensureUserExists();
 
-  // Total Pipeline Value
-  const totalValueResult = await db.select({
-    total: sql<number>`SUM(estimated_value)`
-  }).from(leads).where(eq(leads.userId, userId));
+  try {
+    // Total Pipeline Value
+    const totalValueResult = await db.select({
+      total: sql<number>`COALESCE(SUM(estimated_value), 0)`
+    }).from(leads).where(eq(leads.userId, userId));
 
-  // Leads by status
-  const statusCounts = await db.select({
-    status: leads.status,
-    count: sql<number>`COUNT(*)`,
-    value: sql<number>`SUM(estimated_value)`
-  }).from(leads).where(eq(leads.userId, userId)).groupBy(leads.status);
+    // Leads by status
+    const statusCounts = await db.select({
+      status: leads.status,
+      count: sql<number>`COUNT(*)::int`,
+      value: sql<number>`COALESCE(SUM(estimated_value), 0)`
+    }).from(leads).where(eq(leads.userId, userId)).groupBy(leads.status);
 
-  // Leads by source
-  const sourceCounts = await db.select({
-    source: leads.source,
-    count: sql<number>`COUNT(*)`
-  }).from(leads).where(eq(leads.userId, userId)).groupBy(leads.source);
+    // Leads by source
+    const sourceCounts = await db.select({
+      source: leads.source,
+      count: sql<number>`COUNT(*)::int`
+    }).from(leads).where(eq(leads.userId, userId)).groupBy(leads.source);
 
-  // Follow-ups for today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
+    // Follow-ups for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
-  const followUpsToday = await db.select().from(leads)
-    .where(and(
-      eq(leads.userId, userId),
-      sql`${leads.nextContactAt} >= ${today} AND ${leads.nextContactAt} < ${tomorrow}`
-    ));
+    const followUpsToday = await db.select().from(leads)
+      .where(and(
+        eq(leads.userId, userId),
+        sql`${leads.nextContactAt} >= ${today} AND ${leads.nextContactAt} < ${tomorrow}`
+      ));
 
-  return {
-    totalPipeline: totalValueResult[0]?.total || 0,
-    byStatus: statusCounts,
-    bySource: sourceCounts,
-    tasksToday: followUpsToday
-  };
+    return {
+      totalPipeline: Number(totalValueResult[0]?.total) || 0,
+      byStatus: statusCounts.map(s => ({
+        status: s.status,
+        count: Number(s.count) || 0,
+        value: Number(s.value) || 0
+      })),
+      bySource: sourceCounts.map(s => ({
+        source: s.source,
+        count: Number(s.count) || 0
+      })),
+      tasksToday: followUpsToday
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    // Return empty stats instead of crashing
+    return {
+      totalPipeline: 0,
+      byStatus: [],
+      bySource: [],
+      tasksToday: []
+    };
+  }
 }
 
 export async function deleteLead(leadId: string) {
