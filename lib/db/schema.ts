@@ -21,6 +21,8 @@ export const leads = pgTable('leads', {
 
     estimatedValue: doublePrecision('estimated_value').default(0),
     status: text('status').default('novo'),
+    source: text('source').default('direto'), // instagram, whatsapp, indicação, etc
+    nextContactAt: timestamp('next_contact_at'),
 
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
