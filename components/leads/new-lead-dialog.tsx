@@ -24,7 +24,7 @@ const formSchema = z.object({
     company: z.string().optional(),
     phone: z.string().optional(),
     estimatedValue: z.string().optional(),
-    source: z.string().default('direto'),
+    source: z.string().optional(),
     nextContactAt: z.string().optional(),
 });
 
