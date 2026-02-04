@@ -16,7 +16,7 @@ const formSchema = z.object({
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     company: z.string().optional(),
     phone: z.string().optional(),
-    estimatedValue: z.string().transform((val) => Number(val) || 0).optional(),
+    estimatedValue: z.coerce.number().optional(),
 });
 
 export function NewLeadDialog() {
